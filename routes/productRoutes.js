@@ -9,10 +9,9 @@ import {
 } from '../controllers/productController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { admin } from '../middleware/adminMiddleware.js';
-import multer from 'multer';
+import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
 
 // Public
 router.get('/', getAllProducts);
