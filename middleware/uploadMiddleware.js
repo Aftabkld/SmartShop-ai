@@ -5,6 +5,9 @@ import path from 'path';
 
 // Multer setup for local upload before Cloudinary
 const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
   filename: (req, file, cb) => {
     cb(null, `${uuidv4()}${path.extname(file.originalname)}`);
   },

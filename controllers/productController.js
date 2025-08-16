@@ -1,6 +1,7 @@
 // controllers/productController.js
 import Product from '../models/Product.js';
 import cloudinary from '../config/cloudinary.js';
+import fs from 'fs/promises';
 
 // Create Product
 export const createProduct = async (req, res) => {
@@ -10,10 +11,11 @@ export const createProduct = async (req, res) => {
     let images = [];
     if (req.files) {
       for (const file of req.files) {
-        const result = await cloudinary.v2.uploader.upload(file.path, {
+        const result = await cloudinary.uploader.upload(file.path, {
           folder: 'products',
         });
         images.push({ public_id: result.public_id, url: result.secure_url });
+        try { await fs.unlink(file.path); } catch {}
       }
     }
 
@@ -75,7 +77,7 @@ export const updateProduct = async (req, res) => {
     // Optional: Delete existing images from Cloudinary
     if (req.files && product.images.length > 0) {
       for (const img of product.images) {
-        await cloudinary.v2.uploader.destroy(img.public_id);
+        await cloudinary.uploader.destroy(img.public_id);
       }
     }
 
@@ -83,10 +85,11 @@ export const updateProduct = async (req, res) => {
     if (req.files) {
       images = [];
       for (const file of req.files) {
-        const result = await cloudinary.v2.uploader.upload(file.path, {
+        const result = await cloudinary.uploader.upload(file.path, {
           folder: 'products',
         });
         images.push({ public_id: result.public_id, url: result.secure_url });
+        try { await fs.unlink(file.path); } catch {}
       }
     }
 
@@ -112,10 +115,10 @@ export const deleteProduct = async (req, res) => {
 
     // Delete images from Cloudinary
     for (const img of product.images) {
-      await cloudinary.v2.uploader.destroy(img.public_id);
+      await cloudinary.uploader.destroy(img.public_id);
     }
 
-    await product.remove();
+    await product.deleteOne();
     res.json({ message: 'Product deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting product' });
