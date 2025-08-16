@@ -15,7 +15,15 @@ export const registerUser = async (req, res) => {
 
   generateToken(res, user._id);
 
-  res.status(201).json({ message: 'User registered', user });
+  res.status(201).json({
+    message: 'User registered',
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    },
+  });
 };
 
 // Login
@@ -25,7 +33,15 @@ export const loginUser = async (req, res) => {
 
   if (user && (await user.matchPassword(password))) {
     generateToken(res, user._id);
-    res.json({ message: 'Logged in', user });
+    res.json({
+      message: 'Logged in',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+    });
   } else {
     res.status(401).json({ message: 'Invalid credentials' });
   }
@@ -33,13 +49,23 @@ export const loginUser = async (req, res) => {
 
 // Logout
 export const logoutUser = (req, res) => {
-  res.cookie('jwt', '', { maxAge: 1 });
+  res.cookie('jwt', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    expires: new Date(0),
+  });
   res.json({ message: 'Logged out' });
 };
 
 // Get Profile
 export const getUserProfile = async (req, res) => {
-  res.json(req.user);
+  res.json({
+    _id: req.user._id,
+    name: req.user.name,
+    email: req.user.email,
+    isAdmin: req.user.isAdmin,
+  });
 };
 
 // Forgot Password

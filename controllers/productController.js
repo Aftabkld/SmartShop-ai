@@ -1,6 +1,7 @@
 // controllers/productController.js
 import Product from '../models/Product.js';
 import cloudinary from '../config/cloudinary.js';
+import fs from 'fs/promises';
 
 // Create Product
 export const createProduct = async (req, res) => {
@@ -14,6 +15,7 @@ export const createProduct = async (req, res) => {
           folder: 'products',
         });
         images.push({ public_id: result.public_id, url: result.secure_url });
+        try { await fs.unlink(file.path); } catch {}
       }
     }
 
@@ -87,6 +89,7 @@ export const updateProduct = async (req, res) => {
           folder: 'products',
         });
         images.push({ public_id: result.public_id, url: result.secure_url });
+        try { await fs.unlink(file.path); } catch {}
       }
     }
 

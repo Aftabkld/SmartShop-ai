@@ -1,49 +1,39 @@
 import axios from "axios";
 
 export const generateSearchFilters = async (userQuery) => {
+  const model = process.env.OPENAI_MODEL || "gpt-3.5-turbo";
   try {
-    const prompt = `
-You are a smart product search assistant. Your job is to extract search filters from the user's query.
-Extract category, color, price range, brand, or other relevant filters from the query.
-Respond strictly in valid JSON format like:
-{
-  "category": "bags",
-  "color": "brown",
-  "maxPrice": 3000
-}
-
-User query: "${userQuery}"
-`;
+    const prompt = `You are a smart product search assistant. Extract search filters from the user's query. Only return valid compact JSON object without backticks or explanations. Keys may include: category (string), keyword (string), minPrice (number), maxPrice (number). User query: "${userQuery}"`;
 
     const response = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       {
-        model: "gpt-3.5-turbo",
+        model,
         messages: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: prompt },
         ],
-        temperature: 0.3,
+        temperature: 0.2,
+        max_tokens: 150,
       },
       {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
+        timeout: 10000,
       }
     );
 
-    const aiText = response.data.choices[0].message.content.trim();
+    const aiText = response.data.choices?.[0]?.message?.content?.trim() || "{}";
 
-    // Parse the JSON safely
     try {
-      return JSON.parse(aiText);
+      const parsed = JSON.parse(aiText);
+      return typeof parsed === 'object' && parsed !== null ? parsed : {};
     } catch (error) {
-      console.error("Invalid JSON returned by AI:", aiText);
-      return {};
+      return { keyword: userQuery };
     }
   } catch (error) {
-    console.error("AI search error:", error.message);
-    return {};
+    return { keyword: userQuery };
   }
 };
